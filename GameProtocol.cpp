@@ -83,7 +83,6 @@ UserData* GameProtocol::Raw2Request(std::string& _input)
 		}
 
 		auto msg = new GameMsg{ static_cast<GameMsg::MSG_TYPE>(iId), m_reqBuf.substr(8, iLen) };
-		std::cout << msg->m_msg->Utf8DebugString() << std::endl;
 		retLMsg->m_msgs.push_back(msg);
 		m_reqBuf.erase(0, iLen + 8);
 	}
@@ -93,7 +92,6 @@ UserData* GameProtocol::Raw2Request(std::string& _input)
 std::string* GameProtocol::Response2Raw(UserData& _userData)
 {
 	GET_REF2DATA(GameMsg, oMsg, _userData);
-	std::cout << oMsg.m_msg->Utf8DebugString() << std::endl;
 	auto retBuf = new std::string;
 	auto strMsg = oMsg.serialize();
 	int iId = static_cast<int>(oMsg.enMsgType);

@@ -13,11 +13,40 @@
 #include <ysfio.h>
 #include <ysfio_tcp.h>
 #include <ysfio_timer.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "GameTcpChannel.h"
 #include "RandomName.h"
 
+void SetDaemon()
+{
+	auto pid = fork();
+	if (0 > pid)
+	{
+		exit(-1);
+	}
+	else if (0 < pid)
+	{
+		/* 父进程 */
+		exit(0);
+	}
+	/* 子进程 */
+	setsid();
+	auto nullfd = open("/dev/null", O_RDWR);
+	if (nullfd >= 0)
+	{
+		dup2(nullfd, 0);
+		dup2(nullfd, 1);
+		dup2(nullfd, 2);
+		close(nullfd);
+	}
+}
+
 int main()
 {
+	SetDaemon();
 	RandomName::Init();
 	YSFIO::YSFIOKernel::Init();
 	YSFIO::YSFIOKernel::AddChannel(new YSFIO::YSFIOTimerMngChannel{});

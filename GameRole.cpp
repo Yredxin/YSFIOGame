@@ -11,6 +11,7 @@
 #include <ysfio_timer.h>
 #include <algorithm>
 #include <random>
+#include <hiredis/hiredis.h>
 #include "GameRole.h"
 #include "GameProtocol.h"
 #include "GameTcpChannel.h"
@@ -215,6 +216,14 @@ bool GameRole::Init()
 		YSFIOKernel::SendOut(*msg, role->m_protocol);
 	}
 
+	/* 将玩家记录到redis */
+	auto rcon = redisConnect("192.168.176.128", 6379);
+	if (nullptr != rcon)
+	{
+		freeReplyObject(redisCommand(rcon, "lpush game_name %s", m_sName.c_str()));
+		redisFree(rcon);
+	}
+
 	return true;
 }
 
@@ -242,6 +251,14 @@ void GameRole::Fini()
 		task = new GameExitTask{};
 		YSFIOTimerTaskProc::AddTask(task);
 	}
+
+	/* 将玩家从redis删除 */
+	auto rcon = redisConnect("192.168.176.128", 6379);
+	if (nullptr != rcon)
+	{
+		freeReplyObject(redisCommand(rcon, "lrem game_name 1 %s", m_sName.c_str()));
+		redisFree(rcon);
+	}
 }
 
 UserData* GameRole::ProcMsg(UserData& _userData)
@@ -249,8 +266,8 @@ UserData* GameRole::ProcMsg(UserData& _userData)
 	GET_REF2DATA(MultiMsg, oMult, _userData);
 	for (auto& gameMsg : oMult.m_msgs)
 	{
-		std::cout << "type is" << gameMsg->enMsgType << std::endl;
-		std::cout << gameMsg->m_msg->Utf8DebugString() << std::endl;
+		// std::cout << "type is" << gameMsg->enMsgType << std::endl;
+		// std::cout << gameMsg->m_msg->Utf8DebugString() << std::endl;
 
 		switch (gameMsg->enMsgType)
 		{
