@@ -15,12 +15,12 @@
 #include "GameRole.h"
 #include "GameProtocol.h"
 #include "GameTcpChannel.h"
-#include "GameExitTask.h"
 #include "msg.pb.h"
 #include "RandomName.h"
 using namespace YSFIO;
 
-static GameExitTask* task = nullptr;
+// static GameExitTask* task = nullptr;
+GameExitTask* GameRole::task = nullptr;
 
 GameMsg* GameRole::CreateLoginMsg()
 {
@@ -220,7 +220,15 @@ bool GameRole::Init()
 	auto rcon = redisConnect("192.168.176.128", 6379);
 	if (nullptr != rcon)
 	{
-		freeReplyObject(redisCommand(rcon, "lpush game_name %s", m_sName.c_str()));
+		redisReply* reply = static_cast<redisReply*>(redisCommand(rcon, "AUTH 123"));
+		if (nullptr != reply && strcmp(reply->str, "OK") == 0)
+		{
+			freeReplyObject(redisCommand(rcon, "lpush game_name %s", m_sName.c_str()));
+		}
+		if (nullptr != reply)
+		{
+			freeReplyObject(reply);
+		}
 		redisFree(rcon);
 	}
 
@@ -256,7 +264,15 @@ void GameRole::Fini()
 	auto rcon = redisConnect("192.168.176.128", 6379);
 	if (nullptr != rcon)
 	{
-		freeReplyObject(redisCommand(rcon, "lrem game_name 1 %s", m_sName.c_str()));
+		redisReply* reply = static_cast<redisReply*>(redisCommand(rcon, "AUTH 123"));
+		if (nullptr != reply && strcmp(reply->str, "OK") == 0)
+		{
+			freeReplyObject(redisCommand(rcon, "lrem game_name 1 %s", m_sName.c_str()));
+		}
+		if (nullptr != reply)
+		{
+			freeReplyObject(reply);
+		}
 		redisFree(rcon);
 	}
 }

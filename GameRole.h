@@ -13,6 +13,7 @@
 #include <list>
 #include "GameAOI.h"
 #include "GameMsg.h"
+#include "GameExitTask.h"
 
 class GameProtocol;
 class GameRole :
@@ -45,6 +46,8 @@ class GameRole :
 	/* 相互添加视野 */
 	void ViewLast(GameRole* _role);
 public:
+	/* 定时器任务 */
+	static GameExitTask* task;
 	void AddSelfProtocol(GameProtocol* _protocol);
 	GameRole();
 	~GameRole();

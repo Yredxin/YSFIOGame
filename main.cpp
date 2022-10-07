@@ -19,6 +19,8 @@
 #include <fcntl.h>
 #include "GameTcpChannel.h"
 #include "RandomName.h"
+#include "GameRole.h"
+#include "GameExitTask.h"
 
 void SetDaemon()
 {
@@ -50,6 +52,11 @@ int main()
 	RandomName::Init();
 	YSFIO::YSFIOKernel::Init();
 	YSFIO::YSFIOKernel::AddChannel(new YSFIO::YSFIOTimerMngChannel{});
+	if (nullptr == GameRole::task)
+	{
+		GameRole::task = new GameExitTask{};
+	}
+	YSFIO::YSFIOTimerTaskProc::AddTask(GameRole::task);
 	YSFIO::YSFIOKernel::AddChannel(new YSFIO::YSFIOTcpListen{ 8989, new GameTcpFactory{} });
 	YSFIO::YSFIOKernel::Run();
 	YSFIO::YSFIOKernel::Fini();
